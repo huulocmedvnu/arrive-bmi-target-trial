@@ -1,4 +1,4 @@
-"""Manuscript figures (AJOG MFM). Fig 1 study flow and clone-censor-weight design, Fig 2 perinatal death by BMI class,
+"""Manuscript figures. Fig 1 study flow and clone-censor-weight design, Fig 2 perinatal death by BMI class,
 Fig 3 BMI curve and parity subgroups, Fig 4 secondary outcomes. Inputs outputs/manuscript_numbers.json and outputs/ccw.json."""
 import os, json
 import plotly.graph_objects as go, plotly.express as px

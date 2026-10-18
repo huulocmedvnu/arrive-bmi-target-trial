@@ -1,5 +1,5 @@
-"""Manuscript figures. Fig 1 study flow and clone-censor-weight design, Fig 2 perinatal death by BMI class,
-Fig 3 secondary outcomes. Inputs outputs/manuscript_numbers.json and outputs/ccw.json."""
+"""Manuscript figures (AJOG MFM). Fig 1 study flow and clone-censor-weight design, Fig 2 perinatal death by BMI class,
+Fig 3 BMI curve and parity subgroups, Fig 4 secondary outcomes. Inputs outputs/manuscript_numbers.json and outputs/ccw.json."""
 import os, json
 import plotly.graph_objects as go, plotly.express as px
 from plotly.subplots import make_subplots
@@ -73,7 +73,7 @@ f.update_xaxes(title_text="Prepregnancy BMI, kg/m²")
 f.update_layout(legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"), margin=dict(l=80, r=30, t=60, b=140))
 save(f, "Figure_2", 1400, 600)
 
-# Figure 3: secondary outcomes, risk difference
+# Figure 4: secondary outcomes, risk difference
 f = make_subplots(rows=1, cols=3, horizontal_spacing=0.08, subplot_titles=("Cesarean delivery", "NICU admission", "Composite neonatal morbidity"))
 for j, o in enumerate(["cesar", "nicu", "morb"]):
     v = [P[o][k] for k in CLS]
@@ -83,10 +83,10 @@ for j, o in enumerate(["cesar", "nicu", "morb"]):
 f.update_yaxes(title_text="Risk difference per 10,000 live births<br>(expectant management minus delivery)", row=1, col=1)
 f.update_xaxes(title_text="Prepregnancy BMI, kg/m²", tickangle=-45)
 f.update_layout(margin=dict(l=100, r=30, t=60, b=120))
-save(f, "Figure_3", 1500, 560)
+save(f, "Figure_4", 1500, 560)
 print("ok")
 
-# Figure 4: BMI curve (A) and parity subgroups (B perinatal death, C cesarean)
+# Figure 3: BMI curve (A) and parity subgroups (B perinatal death, C cesarean)
 sub = json.load(open(os.path.join(OUT, "ccw_sub.json"))); cv = sub["curve"]
 keys = list(cv.keys()); mid = {"<18": 17, "50+": 51}
 xs = [mid[k] if k in mid else float(k.split("-")[0]) + 1 for k in keys]
@@ -108,5 +108,5 @@ for col in (2, 3): f.update_xaxes(tickvals=list(range(len(CLS))), ticktext=LAB, 
 f.update_yaxes(title_text="Risk difference per 10,000 pregnancies", row=1, col=1); f.update_yaxes(title_text="Per 10,000 pregnancies", row=1, col=2)
 f.update_yaxes(title_text="Per 10,000 live births", row=1, col=3)
 f.update_layout(legend=dict(orientation="h", y=-0.38, x=0.67, xanchor="center"), margin=dict(l=80, r=30, t=60, b=150))
-save(f, "Figure_4", 1600, 600)
+save(f, "Figure_3", 1600, 600)
 print("fig4 ok")

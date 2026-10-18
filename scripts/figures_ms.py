@@ -13,55 +13,55 @@ LAB = ["<18.5", "18.5–24.9", "25.0–29.9", "30.0–34.9", "35.0–39.9", "40.
 COL = px.colors.qualitative.Plotly
 
 
-def save(f, name, w, h):
-    f.update_layout(template="plotly_white", width=w, height=h, font=dict(size=15, family="Arial"))
+def save(f, name, w, h, size=18):
+    f.update_layout(template="plotly_white", width=w, height=h, font=dict(size=size, family="Arial"))
+    for a in f.layout.annotations:
+        if a.font.size in (None, 16): a.font.size = size
     f.write_html(os.path.join(FIG, f"{name}.html"), include_plotlyjs="cdn"); f.write_image(os.path.join(FIG, f"{name}.pdf"))
-    png = os.path.join(FIG, f"{name}.png"); f.write_image(png, scale=3)
+    png = os.path.join(FIG, f"{name}.png"); f.write_image(png, scale=4.5)
     im = Image.open(png).convert("RGB"); dpi = max(300, round(im.width / (17 / 2.54)))
     im.save(os.path.join(FIG, f"{name}.tif"), compression="tiff_lzw", dpi=(dpi, dpi))
 
 
-# Figure 1: flow (left) and design (right), drawn in paper coordinates
+# Figure 1: flow (A, top) and design (B, bottom), drawn in paper coordinates; large type so it stays legible when downsampled
 f = go.Figure(); f.update_xaxes(visible=False, range=[0, 1]); f.update_yaxes(visible=False, range=[0, 1])
-def box(x0, y0, x1, y1, text, fill="white", size=13):
-    f.add_shape(type="rect", x0=x0, y0=y0, x1=x1, y1=y1, line=dict(color="#444", width=1.2), fillcolor=fill)
+def box(x0, y0, x1, y1, text, fill="white", size=17):
+    f.add_shape(type="rect", x0=x0, y0=y0, x1=x1, y1=y1, line=dict(color="#444", width=1.5), fillcolor=fill)
     f.add_annotation(x=(x0 + x1) / 2, y=(y0 + y1) / 2, text=text, showarrow=False, font=dict(size=size), align="center")
 def arrow(x0, y0, x1, y1):
-    f.add_annotation(x=x1, y=y1, ax=x0, ay=y0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowwidth=1.3, arrowcolor="#444", text="")
-steps = [("Live births and fetal deaths at 20 weeks or later,<br>US residents, 2019–2024<br>n = " + N["flow_all"], None),
-         (None, "Multiple gestation: " + N["flow_ex_multiple"]),
-         (None, "Gestation below 39 weeks or unknown: " + N["flow_ex_ga"]),
-         (None, "Prepregnancy BMI unknown: " + N["flow_ex_bmi"]),
-         (None, "Diabetes, hypertension, eclampsia,<br>previous cesarean, or noncephalic<br>or unknown presentation: " + N["flow_ex_risk"]),
-         (None, "Congenital anomaly: " + N["flow_ex_anom"])]
-ys = [0.90, 0.76, 0.62, 0.48, 0.34, 0.20]
-box(0.02, 0.85, 0.36, 0.97, steps[0][0])
-for i in range(1, 6):
-    y = ys[i]
-    box(0.23, y - 0.05, 0.47, y + 0.05, steps[i][1], fill="#f4f4f4", size=11); arrow(0.19, y, 0.23, y)
-f.add_shape(type="line", x0=0.19, y0=0.85, x1=0.19, y1=0.13, line=dict(color="#444", width=1.3)); arrow(0.19, 0.135, 0.19, 0.12)
-box(0.02, 0.01, 0.36, 0.12, "Low-risk, nonanomalous singleton pregnancies<br>ongoing at 39 0/7 weeks<br>n = " + N["n_cohort"] + " (" + N["live"] + " live births,<br>" + N["stillbirths"] + " stillbirths)", fill="#eef1ff")
-# design panel
-f.add_annotation(x=0.76, y=0.985, text="<b>Courses observed in week 39 and their use in each emulated strategy</b>", showarrow=False, font=dict(size=13))
-cy = [0.78, 0.50, 0.22]
+    f.add_annotation(x=x1, y=y1, ax=x0, ay=y0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowwidth=1.6, arrowcolor="#444", text="")
+box(0.05, 0.925, 0.47, 0.995, "Live births and fetal deaths at 20 weeks or later,<br>US residents, 2019–2024<br>n = " + N["flow_all"])
+exc = [(0.880, 0.040, "Multiple gestation: " + N["flow_ex_multiple"]),
+       (0.828, 0.040, "Gestation below 39 weeks or unknown: " + N["flow_ex_ga"]),
+       (0.776, 0.040, "Prepregnancy BMI unknown: " + N["flow_ex_bmi"]),
+       (0.708, 0.070, "Diabetes, hypertension, eclampsia, previous<br>cesarean, or noncephalic or unknown<br>presentation: " + N["flow_ex_risk"]),
+       (0.645, 0.040, "Congenital anomaly: " + N["flow_ex_anom"])]
+for y, h, t in exc:
+    box(0.36, y - h / 2, 0.99, y + h / 2, t, fill="#f4f4f4", size=16); arrow(0.23, y, 0.36, y)
+f.add_shape(type="line", x0=0.23, y0=0.925, x1=0.23, y1=0.592, line=dict(color="#444", width=1.6)); arrow(0.23, 0.60, 0.23, 0.588)
+box(0.05, 0.505, 0.47, 0.588, "Low-risk, nonanomalous singleton<br>pregnancies ongoing at 39 0/7 weeks<br>n = " + N["n_cohort"] + "<br>(" + N["live"] + " live births, " + N["stillbirths"] + " stillbirths)", fill="#eef1ff")
+f.add_annotation(x=0.5, y=0.468, text="<b>Courses observed in week 39 and their use in each emulated strategy</b>", showarrow=False, font=dict(size=17))
+f.add_annotation(x=0.21, y=0.425, text="<b>Observed course</b>", showarrow=False, font=dict(size=17))
+f.add_annotation(x=0.575, y=0.425, text="<b>Delivery in week 39</b>", showarrow=False, font=dict(size=17))
+f.add_annotation(x=0.86, y=0.425, text="<b>Expectant management</b>", showarrow=False, font=dict(size=17))
+cy = [0.338, 0.208, 0.078]
 crs = [("I: induced and born in week 39<br>n = " + N["n_I"], COL[0]), ("S: stillbirth, spontaneous or<br>noninduced birth in week 39<br>n = " + N["n_S"], COL[2]),
        ("O: ongoing at 40 0/7 weeks<br>n = " + N["n_O"], COL[1])]
-for (t, cc), y in zip(crs, cy): box(0.52, y - 0.08, 0.70, y + 0.08, t, fill="white", size=12); f.add_shape(type="rect", x0=0.52, y0=y - 0.08, x1=0.53, y1=y + 0.08, fillcolor=cc, line=dict(width=0))
-f.add_annotation(x=0.835, y=0.92, text="<b>Delivery in week 39</b>", showarrow=False, font=dict(size=13))
-f.add_annotation(x=0.94, y=0.92, text="<b>Expectant<br>management</b>", showarrow=False, font=dict(size=13))
-cells = [("Counts, weight<br>1 + P(O)/P(I)", "Censored at<br>induction"), ("Counts, weight 1<br>(includes all week-39<br>stillbirths)", "Counts, weight<br>1/(1 − P(I))<br>(includes all<br>week-39 stillbirths)"),
-         ("Censored at<br>40 0/7 weeks", "Counts, weight<br>1/(1 − P(I))")]
-for (a, b), y in zip(cells, cy):
-    box(0.765, y - 0.08, 0.905, y + 0.08, a, fill="#eef1ff" if "Counts" in a else "#f4f4f4", size=11)
-    box(0.915, y - 0.08, 0.995, y + 0.08, b, fill="#eef1ff" if "Counts" in b else "#f4f4f4", size=11)
-f.add_annotation(x=0.76, y=0.06, text="P(I) and P(O): probabilities given covariates, estimated within each BMI class", showarrow=False, font=dict(size=11, color="#333"))
-f.add_annotation(x=0.0, y=1.0, text="<b>A</b>", showarrow=False, font=dict(size=18), xanchor="left")
-f.add_annotation(x=0.50, y=1.0, text="<b>B</b>", showarrow=False, font=dict(size=18), xanchor="left")
+for (t, cc), y in zip(crs, cy):
+    box(0.02, y - 0.055, 0.40, y + 0.055, t, fill="white", size=16); f.add_shape(type="rect", x0=0.02, y0=y - 0.055, x1=0.035, y1=y + 0.055, fillcolor=cc, line=dict(width=0))
+cells = [("Counts, weight<br>1 + P(O)/P(I)", "Censored at induction"), ("Counts, weight 1<br>(includes all week-39<br>stillbirths)", "Counts, weight 1/[1 − P(I)]<br>(includes all week-39<br>stillbirths)"),
+         ("Censored at 40 0/7 weeks", "Counts, weight 1/[1 − P(I)]")]
+for (a_, b_), y in zip(cells, cy):
+    box(0.43, y - 0.055, 0.72, y + 0.055, a_, fill="#eef1ff" if "Counts" in a_ else "#f4f4f4", size=16)
+    box(0.735, y - 0.055, 0.99, y + 0.055, b_, fill="#eef1ff" if "Counts" in b_ else "#f4f4f4", size=16)
+f.add_annotation(x=0.5, y=0.0, text="P(I) and P(O): probabilities of courses I and O given covariates, estimated within each BMI class", showarrow=False, font=dict(size=15, color="#333"), yanchor="bottom")
+f.add_annotation(x=0.0, y=1.0, text="<b>A</b>", showarrow=False, font=dict(size=24), xanchor="left", yanchor="top")
+f.add_annotation(x=0.0, y=0.49, text="<b>B</b>", showarrow=False, font=dict(size=24), xanchor="left", yanchor="top")
 f.update_layout(margin=dict(l=10, r=10, t=10, b=10), showlegend=False)
-save(f, "Figure_1", 1500, 760)
+save(f, "Figure_1", 1000, 1150, size=17)
 
 # Figure 2: perinatal death
-f = make_subplots(rows=1, cols=2, horizontal_spacing=0.1, subplot_titles=("Risk of perinatal death", "Risk difference, expectant management minus delivery"))
+f = make_subplots(rows=1, cols=2, horizontal_spacing=0.12, subplot_titles=("Risk of perinatal death", "Risk difference, expectant minus delivery"))
 for j, (arm, nm) in enumerate([("risk_A", "Delivery in week 39"), ("risk_B", "Expectant management")]):
     f.add_trace(go.Scatter(x=LAB, y=[P["death"][k][arm] for k in CLS], mode="lines+markers", name=nm, marker=dict(size=10, color=COL[j]), line=dict(color=COL[j])), 1, 1)
 rd = [P["death"][k] for k in CLS]
@@ -70,8 +70,8 @@ f.add_trace(go.Scatter(x=LAB, y=[v["rd"] for v in rd], mode="markers", name="Ris
 f.add_hline(y=0, line_dash="dash", line_color="grey", row=1, col=2)
 f.update_yaxes(title_text="Per 10,000 pregnancies", rangemode="tozero", row=1, col=1); f.update_yaxes(title_text="Per 10,000 pregnancies", row=1, col=2)
 f.update_xaxes(title_text="Prepregnancy BMI, kg/m²")
-f.update_layout(legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"), margin=dict(l=80, r=30, t=60, b=140))
-save(f, "Figure_2", 1400, 600)
+f.update_layout(legend=dict(orientation="h", y=-0.32, x=0.5, xanchor="center"), margin=dict(l=80, r=20, t=50, b=150))
+save(f, "Figure_2", 1050, 560)
 
 # Figure 4: secondary outcomes, risk difference
 f = make_subplots(rows=1, cols=3, horizontal_spacing=0.08, subplot_titles=("Cesarean delivery", "NICU admission", "Composite neonatal morbidity"))
@@ -80,17 +80,17 @@ for j, o in enumerate(["cesar", "nicu", "morb"]):
     f.add_trace(go.Scatter(x=LAB, y=[x["rd"] for x in v], mode="markers", marker=dict(size=9, color=COL[j]), showlegend=False,
                            error_y=dict(type="data", array=[x["rd_hi"] - x["rd"] for x in v], arrayminus=[x["rd"] - x["rd_lo"] for x in v], thickness=1.5)), 1, j + 1)
     f.add_hline(y=0, line_dash="dash", line_color="grey", row=1, col=j + 1)
-f.update_yaxes(title_text="Risk difference per 10,000 live births<br>(expectant management minus delivery)", row=1, col=1)
+f.update_yaxes(title_text="Risk difference per 10,000 live births", row=1, col=1)
 f.update_xaxes(title_text="Prepregnancy BMI, kg/m²", tickangle=-45)
-f.update_layout(margin=dict(l=100, r=30, t=60, b=120))
-save(f, "Figure_4", 1500, 560)
+f.update_layout(margin=dict(l=90, r=20, t=50, b=130))
+save(f, "Figure_4", 1150, 560)
 print("ok")
 
 # Figure 3: BMI curve (A) and parity subgroups (B perinatal death, C cesarean)
 sub = json.load(open(os.path.join(OUT, "ccw_sub.json"))); cv = sub["curve"]
 keys = list(cv.keys()); mid = {"<18": 17, "50+": 51}
 xs = [mid[k] if k in mid else float(k.split("-")[0]) + 1 for k in keys]
-f = make_subplots(rows=1, cols=3, horizontal_spacing=0.08, subplot_titles=("Perinatal death, 2-unit BMI bins and spline", "Perinatal death by parity", "Cesarean delivery by parity"))
+f = make_subplots(rows=1, cols=3, horizontal_spacing=0.08, subplot_titles=("Perinatal death, 2-unit bins", "Perinatal death by parity", "Cesarean by parity"))
 f.add_trace(go.Scatter(x=xs, y=[cv[k]["rd"] for k in keys], mode="markers", marker=dict(size=8, color=COL[2]), name="2-unit bins",
                        error_y=dict(type="data", array=[cv[k]["rd_hi"] - cv[k]["rd"] for k in keys], arrayminus=[cv[k]["rd"] - cv[k]["rd_lo"] for k in keys], thickness=1.2)), 1, 1)
 for j, (lev, nm) in enumerate([("nulliparous", "Nulliparous"), ("parous", "Parous")]):
@@ -105,8 +105,8 @@ f.add_trace(go.Scatter(x=sp["bmi"], y=sp["rd"], mode="lines", line=dict(color="b
 for col in (1, 2, 3): f.add_hline(y=0, line_dash="dash", line_color="grey", row=1, col=col)
 f.update_xaxes(title_text="Prepregnancy BMI, kg/m²", row=1, col=1)
 for col in (2, 3): f.update_xaxes(tickvals=list(range(len(CLS))), ticktext=LAB, tickangle=-45, title_text="Prepregnancy BMI, kg/m²", row=1, col=col)
-f.update_yaxes(title_text="Risk difference per 10,000 pregnancies", row=1, col=1); f.update_yaxes(title_text="Per 10,000 pregnancies", row=1, col=2)
+f.update_yaxes(title_text="Per 10,000 pregnancies", row=1, col=1); f.update_yaxes(title_text="Per 10,000 pregnancies", row=1, col=2)
 f.update_yaxes(title_text="Per 10,000 live births", row=1, col=3)
-f.update_layout(legend=dict(orientation="h", y=-0.38, x=0.67, xanchor="center"), margin=dict(l=80, r=30, t=60, b=150))
-save(f, "Figure_3", 1600, 600)
+f.update_layout(legend=dict(orientation="h", y=-0.42, x=0.5, xanchor="center"), margin=dict(l=80, r=20, t=50, b=170))
+save(f, "Figure_3", 1200, 600)
 print("fig4 ok")
